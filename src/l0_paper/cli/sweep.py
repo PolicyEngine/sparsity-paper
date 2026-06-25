@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Amplified budget sweep: the three calibration conditions across N and seeds.
+"""Amplified budget sweep: calibration conditions across N and seeds.
 
-Where ``run_poc.py`` runs one budget at one seed, this sweeps a grid of record
+Where ``l0 poc`` runs one budget at one seed, this sweeps a grid of record
 budgets x seeds on a *frozen* pre-calibration dataset and writes one tidy
 long-format CSV (``metrics_long.csv``) that every figure and table consumes.
 
@@ -9,7 +9,7 @@ Design choices that keep it honest and affordable:
 
 * **Frozen input.** Always reuses a pre-built ``(Frame, TargetRegistry)`` via
   ``--reuse-precalibration`` -- the calibration method is the only thing that
-  varies. Build the artifact once with ``run_poc.py``.
+  varies. Build the artifact once with ``l0 poc``.
 * **Leak-free holdout.** The frontier uses one fixed *family-level* split
   (whole families held out, so nested cells never leak across the split). An
   optional rotation panel (``--rotation-folds``) re-runs at one anchor budget with
@@ -18,20 +18,24 @@ Design choices that keep it honest and affordable:
 * **Dense reuse.** The dense fit for survey-weight sampling does not depend on the
   budget, so it is computed once per seed and resampled at every budget.
 * **Matched budget.** Informed L0 sets the budget at each (seed, budget) point;
-  the two baselines match its retained count.
+  the other methods match its retained count.
 
 Example
 -------
-    uv run python experiments/run_sweep.py \
-        --reuse-precalibration experiments/runs/full-20k-cbo-state-tax-holdout/precalibration \
-        --out experiments/runs/sweep-moderate \
+    uv run --extra data l0 sweep \
+        --reuse-precalibration runs/poc/precalibration \
+        --out runs/sweep-moderate \
         --budgets 1000 2000 5000 10000 20000 \
         --seeds 0 1 2 \
         --epochs 1000 \
         --holdout-families census_population state_income_tax \
-        --rotation-folds 5 --rotation-budget 5000
+        --rotation-folds 5 --rotation-budget 5000 \
+        --target-loss-cap 10 \
+        --methods informed_l0 random_reweight dense_sample
 
-Run only the (expensive) L0 condition with --methods informed_l0.
+That command reproduces the current paper frontier. Omit ``--methods`` to include
+the proximal L1 arm, and omit ``--target-loss-cap 10`` to use the current
+production US-fiscal cap.
 """
 
 from __future__ import annotations
@@ -41,12 +45,15 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
+import numpy as np
+
 from l0_paper.experiments import aggregate, holdout, metrics, target_loss
 from l0_paper.experiments.artifacts import _jsonable, write_run_manifest
 from l0_paper.experiments.conditions import (
     DEFAULT_EPOCHS,
     calibrate_dense,
     run_l0,
+    run_l1,
     run_random_then_reweight,
     sample_from_dense,
 )
@@ -56,7 +63,7 @@ from l0_paper.precalibration import MANIFEST_JSON, load_precalibration_dataset
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reuse-precalibration", type=Path, required=True,
-                        help="Frozen pre-calibration artifact directory (built by run_poc.py).")
+                        help="Frozen pre-calibration artifact directory (built by l0 poc).")
     parser.add_argument("--out", type=Path, required=True, help="Sweep output directory.")
     parser.add_argument("--budgets", type=int, nargs="+", required=True,
                         help="Record budgets (target_records) to sweep.")
@@ -92,8 +99,9 @@ def _parse_args() -> argparse.Namespace:
                              "production _fiscal_target_loss_weights helper; 'uniform' "
                              "preserves the historical unweighted experiment loss.")
     parser.add_argument("--target-loss-cap", type=float, default=None,
-                        help="Per-target cap in the calibration loss. Defaults to 10.0 "
-                             "for both uniform weighting and production_us_fiscal.")
+                        help="Per-target cap in the calibration loss. Defaults by "
+                             "weighting: production_us_fiscal -> 1.0, uniform -> "
+                             "10.0. Pass 10.0 to reproduce the current paper runs.")
 
     # Fixed frontier holdout (family-level, leak-free).
     parser.add_argument("--holdout-families", nargs="*",
@@ -141,9 +149,9 @@ def _parse_args() -> argparse.Namespace:
 
     parser.add_argument(
         "--methods", nargs="+",
-        choices=["informed_l0", "random_reweight", "dense_sample"],
-        default=["informed_l0", "random_reweight", "dense_sample"],
-        help="Which calibration conditions to run. Default all three. Use e.g. "
+        choices=["informed_l0", "informed_l1", "random_reweight", "dense_sample"],
+        default=["informed_l0", "informed_l1", "random_reweight", "dense_sample"],
+        help="Which calibration conditions to run. Default all four. Use e.g. "
              "--methods informed_l0 to run L0 only (the expensive condition); the "
              "cheap baselines can be added in a later run at matched budgets.",
     )
@@ -166,6 +174,8 @@ def _score_and_emit(
     fold: int,
     degenerate_fit: set[str] | None = None,
     degenerate_holdout: set[str] | None = None,
+    fit_loss_weights: np.ndarray | None = None,
+    holdout_loss_weights: np.ndarray | None = None,
     diag_rows: list[dict] | None = None,
 ) -> None:
     """Score one run in/out-of-sample and append its long-format rows.
@@ -173,8 +183,10 @@ def _score_and_emit(
     ``degenerate_fit`` / ``degenerate_holdout`` are the denominator-degenerate
     target names (:func:`metrics.degenerate_target_names`) for each split, used to
     emit the targeted-removal sensitivity. When ``diag_rows`` is given, per-target
-    out-of-sample diagnostics for the headline (``fixed_family``) split are
-    appended for the attribution report.
+    diagnostics for the headline (``fixed_family``) split are appended for both
+    splits, carrying the raw values plus the production loss weight
+    (``fit_loss_weights`` / ``holdout_loss_weights``) so the capped, weighted
+    objective can be recomputed downstream (:mod:`l0_paper.experiments.crunch`).
     """
     in_sample = metrics.score(
         frame, run.weights, fit_targets, label="in_sample",
@@ -184,7 +196,9 @@ def _score_and_emit(
         frame, run.weights, holdout_targets, label="out_of_sample",
         degenerate_names=degenerate_holdout,
     )
-    holdout_diag = metrics.target_diagnostics(frame, run.weights, holdout_targets)
+    holdout_diag = metrics.target_diagnostics(
+        frame, run.weights, holdout_targets, loss_weights=holdout_loss_weights
+    )
     extreme = aggregate.extreme_are_counts(holdout_diag)
     rows.extend(
         aggregate.rows_from_run(
@@ -202,6 +216,17 @@ def _score_and_emit(
         )
     )
     if diag_rows is not None and holdout_type == "fixed_family":
+        fit_diag = metrics.target_diagnostics(
+            frame, run.weights, fit_targets, loss_weights=fit_loss_weights
+        )
+        diag_rows.extend(
+            aggregate.target_diagnostic_rows(
+                method=method, l2_lambda=l2_lambda, seed=seed,
+                budget_requested=budget_requested,
+                split="in_sample", diagnostics=fit_diag,
+                degenerate_names=degenerate_fit,
+            )
+        )
         diag_rows.extend(
             aggregate.target_diagnostic_rows(
                 method=method, l2_lambda=l2_lambda, seed=seed,
@@ -237,6 +262,7 @@ def _sweep_split(
     and only when ``dense_sample`` is requested. Returns per-seed dense runtimes.
     """
     want_l0 = "informed_l0" in methods
+    want_l1 = "informed_l1" in methods
     want_survey = "dense_sample" in methods
     want_random = "random_reweight" in methods
 
@@ -251,6 +277,14 @@ def _sweep_split(
     )
     target_loss_weights = target_loss.target_loss_weights(
         fit_targets,
+        weighting=target_loss_weighting,
+    )
+    # Per-target omega for the held-out targets too, so the stored diagnostics carry
+    # the production weight on both splits and the weighted objective can be crunched
+    # out-of-sample (the optimizer never weighted the holdout; this applies the same
+    # production scheme to it for reporting).
+    holdout_loss_weights = target_loss.target_loss_weights(
+        holdout_targets,
         weighting=target_loss_weighting,
     )
     split_baseline_optimizer = {
@@ -296,6 +330,13 @@ def _sweep_split(
                     target_loss_cap=split_baseline_optimizer["target_loss_cap"],
                     **sample_kwargs,
                 ))
+            if want_l1:
+                # Convex-sparse selector: proximal L1 at the matched budget, its own
+                # bisection on l1_lambda hitting the same retained count as L0.
+                runs.append(run_l1(
+                    frame, fit_targets, target_records=matched, seed=seed,
+                    **split_baseline_optimizer,
+                ))
             if want_random:
                 runs.append(run_random_then_reweight(
                     frame, fit_targets, n_sample=matched, seed=seed,
@@ -308,6 +349,8 @@ def _sweep_split(
                     budget_requested=budget, l2_lambda=l2_lambda,
                     holdout_type=holdout_type, fold=fold,
                     degenerate_fit=degenerate_fit, degenerate_holdout=degenerate_holdout,
+                    fit_loss_weights=target_loss_weights,
+                    holdout_loss_weights=holdout_loss_weights,
                     diag_rows=diag_rows,
                 )
     return dense_runtimes
