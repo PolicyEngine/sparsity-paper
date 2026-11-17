@@ -24,5 +24,5 @@ The manuscript currently references:
 The pipeline overview is generated separately:
 
 ```bash
-uv run python paper/figures/populace_pipeline.py
+uv run python paper/figures/microcosm_pipeline.py
 ```

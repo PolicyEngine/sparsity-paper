@@ -179,7 +179,7 @@ copies `_output/paper/index.pdf` to `paper/main.pdf`. Use
 The pipeline overview figure is generated separately:
 
 ```bash
-uv run python paper/figures/populace_pipeline.py
+uv run python paper/figures/microcosm_pipeline.py
 ```
 
 ## Tests
