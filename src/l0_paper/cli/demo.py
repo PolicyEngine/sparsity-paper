@@ -19,7 +19,7 @@ from l0_paper.experiments.conditions import (
     run_l1,
     run_random_then_reweight,
 )
-from l0_paper.populace_smoke import make_toy_frame, make_toy_targets
+from l0_paper.microcosm_smoke import make_toy_frame, make_toy_targets
 from populace.calibrate import Target, TargetSet
 
 

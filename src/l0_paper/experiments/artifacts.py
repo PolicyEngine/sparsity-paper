@@ -1,7 +1,7 @@
 """Run artifacts: per-method ``.npz`` payloads and the reproducibility manifest.
 
 Issue #4 requires each run to record enough to reproduce the comparison: the
-Populace commit, target/build identity, solver options, seeds, retained count,
+Microcosm commit, target/build identity, solver options, seeds, retained count,
 fit metrics, runtime, and output paths. :func:`method_summary` assembles the
 per-method record and :func:`write_run_manifest` writes the combined manifest.
 """
@@ -147,7 +147,7 @@ def save_weight_npz(
     This intentionally stays lighter than :func:`save_method_npz`: per-target
     diagnostics already live in ``target_diagnostics_long.csv``. The weight vector,
     initial weights, loss trajectory, and JSON metadata are enough to reconstruct
-    any later Populace score against the frozen precalibration artifact.
+    any later Microcosm score against the frozen precalibration artifact.
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

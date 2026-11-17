@@ -121,7 +121,7 @@ def test_paper_full_target_surface_overrides_holdout_defaults():
     assert args.rotation_folds == 0
 
 
-def test_fixed_lambda_share_converts_to_raw_populace_penalty():
+def test_fixed_lambda_share_converts_to_raw_microcosm_penalty():
     raw, share = fixed_lambda._resolve_l0_lambda(
         raw_l0_lambda=None, l0_lambda_share=0.5, candidate_records=200
     )

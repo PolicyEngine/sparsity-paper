@@ -1,7 +1,7 @@
 # L0 paper
 
 Paper and experiment workspace for PolicyEngine's $L_0$ dataset-reduction work on
-the Populace microsimulation data stack.
+the Microcosm microsimulation data stack.
 
 This repository contains the manuscript, figures, tables, and reproducibility
 code for evaluating Hard Concrete / $L_0$ record selection as a way to compress a
@@ -11,7 +11,7 @@ baselines; the experiment package also includes a proximal $L_1$ arm for the
 next real-data sweep. The paper is being prepared for IMA 2026 in Brussels:
 <https://ima26.brussels/blog/presentation_maria_juaristi/>.
 
-The implementation targets active `PolicyEngine/populace` APIs. Archived
+The implementation targets active `PolicyEngine/microcosm` APIs. Archived
 `microplex` and `microplex-us` repositories are mentioned only as historical
 migration context.
 
@@ -31,13 +31,13 @@ l0-paper/
 │   │   └── assets/          #   vendored fonts for the figures
 │   ├── experiments/         # library: conditions, metrics, holdout, crunch, aggregate, tables
 │   ├── precalibration.py    # freeze Frame + TargetRegistry before calibration
-│   ├── populace_smoke.py    # tiny toy Populace frame/targets (used by demo + tests)
-│   └── _populace_driver.py  # Populace wiring helpers
+│   ├── microcosm_smoke.py   # tiny toy Microcosm frame/targets (used by demo + tests)
+│   └── _microcosm_driver.py # Microcosm wiring helpers
 ├── paper/                   # main.tex, sections/, tables/, figures/, bibliography/
 ├── tests/                   # offline tests (toy frame); no network, no PolicyEngine-US
-├── pyproject.toml           # package metadata, the `l0` entry point, extras, Populace paths
+├── pyproject.toml           # package metadata, the `l0` entry point, extras, Microcosm paths
 ├── uv.lock                  # locked Python environment
-└── .github/workflows/ci.yml # pytest + ruff against PolicyEngine/populace main
+└── .github/workflows/ci.yml # pytest + ruff against PolicyEngine/microcosm main
 ```
 
 ## The `l0` command line
@@ -59,11 +59,11 @@ l0 merge-l2          merge single-l2 sweep runs into one comparison directory
 
 `l0 demo` needs nothing beyond the base install and is what CI runs to exercise
 the experiment + figure path; the other commands need the `data`/`viz` extras
-and, for the real run, the pinned Populace artifact below.
+and, for the real run, the pinned Microcosm artifact below.
 
 ## Setup
 
-This repository expects to be cloned next to `PolicyEngine/populace`, which
+This repository expects to be cloned next to a `PolicyEngine/microcosm` checkout named `populace/`, which
 `pyproject.toml` references in editable mode:
 
 ```text
@@ -83,7 +83,7 @@ Extras: `--extra data` installs the heavy real-data path (`populace-data`,
 `policyengine-us`, Hugging Face, H5 I/O); `--extra viz` installs the plotting
 dependencies the figure renderers need.
 
-CI checks out `l0-paper` and `PolicyEngine/populace` (`main`), then runs
+CI checks out `l0-paper` and `PolicyEngine/microcosm` (`main`), then runs
 `uv run --locked --extra viz pytest` and `uv run --locked ruff check .`.
 
 ## Experiment workflow
@@ -139,7 +139,7 @@ dense_sample` to include the proximal `informed_l1` baseline, and pass
 
 Methods available in the sweep:
 
-- `informed_l0` — Populace calibration with Hard Concrete gates at a target budget.
+- `informed_l0` — Microcosm calibration with Hard Concrete gates at a target budget.
 - `informed_l1` — the convex-sparse analog: proximal ($L_1$ soft-threshold)
   selection at the matched budget (`method="prox"`, `l1_lambda`).
 - `random_reweight` — uniform random subset, then gradient-descent reweighting.
@@ -150,8 +150,8 @@ the output schema — is in [`src/l0_paper/cli/README.md`](src/l0_paper/cli/READ
 
 ## Data and provenance
 
-The candidate universe is the Populace US 2024 household file on Hugging Face
-(`policyengine/populace-us`), pinned to snapshot `be80a14f`, built from Populace
+The candidate universe is the Microcosm US 2024 household file on Hugging Face
+(`policyengine/populace-us`), pinned to snapshot `be80a14f`, built from Microcosm
 commit `6e1bcd0`, H5 SHA-256 beginning `f0af2519`. Target values come from
 PolicyEngine Ledger / `arch-data` consumer facts.
 

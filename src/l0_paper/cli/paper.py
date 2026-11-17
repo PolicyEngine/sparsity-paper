@@ -10,7 +10,7 @@ This is the one-command wrapper around the paper pipeline:
 
 The defaults encode the manuscript run: budgets 2k/5k/10k/20k/40k, seeds 0--2,
 fixed holdout families ``cms_medicaid``, ``usda_snap``, and
-``state_income_tax``, validation-only families held out, Populace production
+``state_income_tax``, validation-only families held out, Microcosm production
 target-loss weighting and cap, the reported method arms, and the L2
 operability contrast ``lambda_L2 in {0, 1e-4}``.
 """
@@ -124,7 +124,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--base-h5",
         type=Path,
         default=None,
-        help="Candidate frame for precalibration (default: Populace HF frame).",
+        help="Candidate frame for precalibration (default: Microcosm HF frame).",
     )
     parser.add_argument(
         "--smoke",
@@ -194,7 +194,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--include-congressional-district-targets",
         action="store_true",
-        help="Opt into Populace's expanded congressional-district target surface.",
+        help="Opt into Microcosm's expanded congressional-district target surface.",
     )
     parser.add_argument(
         "--congressional-district-vintage-crosswalk",
@@ -206,7 +206,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--target-materialization-cache-dir",
         type=Path,
         default=None,
-        help="Optional Populace target-materialization cache directory. Useful for "
+        help="Optional Microcosm target-materialization cache directory. Useful for "
         "full-surface CD runs with expensive reform targets.",
     )
 
@@ -229,7 +229,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=float,
         default=None,
         help="Per-target cap in the calibration loss. Defaults by weighting "
-        "(production_us_fiscal -> Populace production cap 1.0).",
+        "(production_us_fiscal -> Microcosm production cap 1.0).",
     )
     parser.add_argument(
         "--l2-lambdas", type=float, nargs="+", default=list(PAPER_L2_LAMBDAS)
@@ -243,7 +243,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--full-target-surface",
         action="store_true",
-        help="Fit every compiled Populace target, including validation-only "
+        help="Fit every compiled Microcosm target, including validation-only "
         "families, and disable holdout/rotation. This is the production-surface "
         "frontier; holdout is treated as a separate experiment.",
     )

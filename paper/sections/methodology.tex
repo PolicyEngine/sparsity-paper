@@ -18,7 +18,7 @@ target $j$ is
 \end{equation}
 
 The methods compared in this study fit weights with the same calibrator, the \texttt{calibrate}
-routine in \populace{}. It minimizes a capped, weighted mean absolute percentage error (capped weighted
+routine in \microcosm{}. It minimizes a capped, weighted mean absolute percentage error (capped weighted
 MAPE) of the estimates against the targets,
 \begin{equation}
     \mathcal{L}_{\mathrm{cal}}(\mathbf{w}) =
@@ -39,7 +39,7 @@ calibration question: it finds weights that match the targets. Dense no-$L_0$, p
 random + reweight use it unchanged on different supports; informed $L_0$ extends it with a selection
 term.
 
-The per-target weights $\omega_j$ in the runs reported here follow \populace{}'s production US-fiscal
+The per-target weights $\omega_j$ in the runs reported here follow \microcosm{}'s production US-fiscal
 weighting, computed through the same code path the production US build uses rather than a separate
 reimplementation. The weighting is built in four steps. Each target is first assigned to one of two
 value bases from its measure metadata: a count basis (indicator, enrollment, recipient, and
@@ -144,7 +144,7 @@ sample of dense calibrated weights scaled back to total mass. The run arms are:
 This design does not claim that raking, GREG, balanced sampling, or combinatorial optimisation are
 irrelevant in general. They remain the reference methods for simpler margin surfaces, classical
 calibration, target-balanced survey designs, and discrete synthetic-population construction. The
-empirical comparison below focuses on the methods that can be applied to the full Populace target
+empirical comparison below focuses on the methods that can be applied to the full Microcosm target
 surface under the same scoring loss and that were run in the real-data probe.
 
 Holding the candidate universe and the target set fixed isolates the effect of how records are
@@ -160,13 +160,13 @@ robustness panel rather than part of the headline evidence here.
 \label{sec:oos}
 
 The production motivation is to construct a deployable dataset that fits the full target surface 
-\populace{} currently assembles. The headline experiment therefore fits and scores every materialized 
+\microcosm{} currently assembles. The headline experiment therefore fits and scores every materialized 
 target, including validation-only families and congressional-district targets. In the run reported here, 
 37{,}053 Ledger facts compile to 32{,}633 materialized calibration targets on 337{,}704 candidate 
 household records. The reported objective is the same capped, weighted calibration loss in 
 Equation~\ref{eq:loss_cal}, evaluated on the final retained weights and excluding the $L_0$ and $L_2$ 
 penalties. This is the frontier an analyst would use when choosing a publishable record budget for 
-the actual \populace{} build.
+the actual \microcosm{} build.
 
 Generalization to structurally different targets is a separate question this proof of concept does not
 test. A meaningful holdout here would withhold whole target families rather than random target rows,
@@ -189,7 +189,7 @@ concentration and compute that accuracy is bought.
 \toprule
 Metric & Definition & Why reported \\
 \midrule
-Populace objective loss & Equation~\ref{eq:loss_cal}: capped, target-weighted relative error, penalty-free & Headline target-fit metric; this is the loss the production calibrator optimizes \\
+Microcosm objective loss & Equation~\ref{eq:loss_cal}: capped, target-weighted relative error, penalty-free & Headline target-fit metric; this is the loss the production calibrator optimizes \\
 Median ARE & Median absolute relative error $|\hat{t}_j - t_j| / |t_j|$ over scored targets & Supplemental accuracy diagnostic, robust to the near-zero-denominator tail \\
 Mean and max ARE & Mean and maximum of the same per-target errors & Supplemental, tail-sensitive diagnostics \\
 Effective sample size & $\mathrm{ESS} = (\sum_i w_i)^2 / \sum_i w_i^2$ and the implied design effect & A sampler can fit the targets while concentrating population mass on a few records, so ESS is a primary result, not a footnote \\
@@ -199,7 +199,7 @@ Runtime & Wall-clock time & Compute cost \\
 \bottomrule
 \end{tabular}
 }
-\caption{Metrics reported for each run. Accuracy is led by the Populace objective loss, with raw ARE
+\caption{Metrics reported for each run. Accuracy is led by the Microcosm objective loss, with raw ARE
 metrics reported as supplemental diagnostics; effective sample size measures the weight concentration that
 accuracy is achieved at.}
 \label{tab:metrics}

@@ -1,7 +1,7 @@
 [project]
 name = "l0-paper"
 version = "0.1.0"
-description = "Paper and Populace-backed experiments for L0 dataset reduction"
+description = "Paper and Microcosm-backed experiments for L0 dataset reduction"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -21,7 +21,7 @@ data = [
     "populace-data>=0.1,<0.2",
     # Heavy real-data path: the rules engine that materializes calibration target
     # measures, plus the HuggingFace base-frame download and H5 I/O. Matches the
-    # version Populace pins. The toy/CI smoke tests do not need these.
+    # version Microcosm pins. The toy/CI smoke tests do not need these.
     "policyengine-us>=1.729,<2",
     "huggingface-hub>=0.20",
     "h5py>=3",

@@ -9,7 +9,7 @@ rather than baked into a run.
 
 In particular the calibration objective -- the capped, weighted MAPE of Equation 8
 *less the penalties* -- can be evaluated at any cap without re-running the
-experiment. Populace's US-fiscal production build caps at ``c = 1``
+experiment. Microcosm's US-fiscal production build caps at ``c = 1``
 (``US_FISCAL_TARGET_LOSS_CAP``), which is also the paper's default production
 surface run. The *optimisation* cap shapes the fitted weights, so cap
 sensitivities still require a rerun when they are interpreted as alternative fits;

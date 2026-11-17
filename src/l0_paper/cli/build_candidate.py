@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-"""Generate-big candidate universe via Populace's full US build plan (heavy).
+"""Generate-big candidate universe via Microcosm's full US build plan (heavy).
 
 The proof-of-concept (``l0 poc``) uses the published HuggingFace frame as the
 candidate universe. This script is the code path for the *true* pre-prune
-candidate universe: Populace's "generate big, then prune" imputation pipeline,
+candidate universe: Microcosm's "generate big, then prune" imputation pipeline,
 which grows the CPS ASEC well beyond the survey before calibration reduces it.
 
 It is intentionally NOT run by default. At production scale the build needs the
 donor source data (PUF, SCF, SIPP, CPS ORG, MEPS-IC, ACS) and roughly 48 GB of
-RAM (see ``populace/SYSTEM_REQUIREMENTS.md``).
+RAM (see ``microcosm/SYSTEM_REQUIREMENTS.md``).
 
 Pipeline (15 stages, from ``populace.build.us_runtime.US_STAGE_NAMES``):
 
@@ -19,7 +19,7 @@ Pipeline (15 stages, from ``populace.build.us_runtime.US_STAGE_NAMES``):
 
 ``populace.build.us_runtime.us_plan`` assembles the ``StagePlan`` but requires one
 ``transform(frame) -> Frame`` implementation per stage to be *injected*. The
-current Populace checkout does not expose a public factory for the production
+current Microcosm checkout does not expose a public factory for the production
 implementations (the release tool recalibrates an existing frame instead of
 running this plan), so :func:`build_stage_implementations` is the single
 extension point that must be supplied. The known source-stage machinery
@@ -48,7 +48,7 @@ from populace.frame import Frame
 def build_stage_implementations() -> Mapping[str, Callable[[Frame], Frame]]:
     """Return one ``transform(frame) -> Frame`` per stage in ``US_STAGE_NAMES``.
 
-    Not yet available: Populace does not export the production stage
+    Not yet available: Microcosm does not export the production stage
     implementations, so this must be filled in (or replaced by a public
     ``populace.build.us`` factory once one exists). The source/donor stages run
     through ``run_source_stage`` with ``us_source_operation_handlers()`` over the
@@ -57,7 +57,7 @@ def build_stage_implementations() -> Mapping[str, Callable[[Frame], Frame]]:
     """
     raise NotImplementedError(
         "Production per-stage implementations are not exposed by the current "
-        "Populace checkout. Supply a transform for each of "
+        "Microcosm checkout. Supply a transform for each of "
         f"{list(US_STAGE_NAMES)} (source stages via run_source_stage + "
         "us_source_operation_handlers over US_SOURCE_MANIFEST), or wait for a "
         "public populace.build.us implementation factory, then run this script."

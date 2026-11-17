@@ -1,6 +1,6 @@
 """All calibration conditions, run on a shared pre-calibration frame.
 
-Conditions consume a Populace :class:`~populace.frame.Frame` and a
+Conditions consume a Microcosm :class:`~populace.frame.Frame` and a
 :class:`~populace.calibrate.target.TargetSet` (the *fit* targets) and return a
 :class:`RunResult` whose ``weights`` is a full-length vector over the candidate
 universe -- zero for records the method did not retain. Representing the reduced
@@ -34,9 +34,9 @@ from populace.calibrate.target import TargetSet
 from populace.frame import MassChange, WeightKind, Weights
 
 try:
-    from populace.calibrate import refit_l0_selection as _populace_refit_l0_selection
-except ImportError:  # pragma: no cover - compatibility with released Populace.
-    _populace_refit_l0_selection = None
+    from populace.calibrate import refit_l0_selection as _microcosm_refit_l0_selection
+except ImportError:  # pragma: no cover - compatibility with released Microcosm.
+    _microcosm_refit_l0_selection = None
 
 # Default Hard-Concrete / optimizer hyperparameters (Appendix table in the paper).
 DEFAULT_EPOCHS = 1000
@@ -58,7 +58,7 @@ class RunResult:
     n_selected: int
     l0_lambda: float
     # Weight-concentration controls. ``max_weight_ratio`` is a hard per-record
-    # cap; ``l2_lambda`` is Populace's soft concentration penalty and is only
+    # cap; ``l2_lambda`` is Microcosm's soft concentration penalty and is only
     # applied for the L0/Hard-Concrete gated condition.
     l2_lambda: float
     max_weight_ratio: float | None
@@ -94,11 +94,11 @@ def run_l0(
 ) -> RunResult:
     """Condition A: informed L0 sampling with Hard-Concrete gates.
 
-    When ``target_records`` is provided, Populace searches for an L0 penalty that
+    When ``target_records`` is provided, Microcosm searches for an L0 penalty that
     reaches the requested retained-record count. When it is ``None``, the supplied
     ``l0_lambda`` is used directly as a fixed sparsity penalty.
 
-    ``l2_lambda`` is passed through to Populace's soft concentration penalty.
+    ``l2_lambda`` is passed through to Microcosm's soft concentration penalty.
     """
     start = time.perf_counter()
     result = calibrate(
@@ -211,10 +211,10 @@ def run_l0_post_refit(
 
     fit_seed = l0_selection.seed if seed is None else seed
     if (
-        _populace_refit_l0_selection is not None
+        _microcosm_refit_l0_selection is not None
         and l0_selection.calibration_result is not None
     ):
-        result = _populace_refit_l0_selection(
+        result = _microcosm_refit_l0_selection(
             frame,
             fit_targets,
             l0_selection.calibration_result,

@@ -1,6 +1,6 @@
-"""Small Populace-backed calibration scenario used by repo tests.
+"""Small Microcosm-backed calibration scenario used by repo tests.
 
-This module intentionally exercises the active Populace API surface used by
+This module intentionally exercises the active Microcosm API surface used by
 the paper experiments: a :class:`populace.frame.Frame`, a declarative
 ``TargetSet``, and ``calibrate(..., target_records=...)`` for L0/Hard Concrete
 budget control.
@@ -29,7 +29,7 @@ class SmokeCalibration:
 
 
 def make_toy_frame(seed: int = 0, n: int = 120) -> tuple[Frame, dict[str, float]]:
-    """Build a deterministic one-person-per-household Populace frame."""
+    """Build a deterministic one-person-per-household Microcosm frame."""
     rng = np.random.default_rng(seed)
     income = rng.lognormal(10.4, 0.55, n)
     is_renter = (rng.random(n) < 0.35).astype(float)
@@ -40,7 +40,7 @@ def make_toy_frame(seed: int = 0, n: int = 120) -> tuple[Frame, dict[str, float]
         {
             "household_id": household_id,
             # All-ones indicator: count-like facts are now sums of indicator columns
-            # (Populace's Target dropped the `aggregation` field).
+            # (Microcosm's Target dropped the `aggregation` field).
             "household_count": np.ones(n, dtype=np.float64),
             "income": income,
             "is_renter": is_renter,
@@ -99,7 +99,7 @@ def run_l0_smoke(
     target_records: int = 60,
     epochs: int = 120,
 ) -> SmokeCalibration:
-    """Run a tiny Populace L0 calibration and return a stable summary."""
+    """Run a tiny Microcosm L0 calibration and return a stable summary."""
     frame, truths = make_toy_frame(seed=seed, n=n)
     result = calibrate(
         frame,

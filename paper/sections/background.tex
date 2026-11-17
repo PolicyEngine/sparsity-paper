@@ -278,7 +278,7 @@ national pipeline that first imputes tax variables from the IRS Public Use File 
 that regularizes the weights with dropout rather than an explicit selection mechanism. The present
 work keeps the gradient-based calibration but replaces dropout with the $L_0$ and Hard Concrete gates
 of the previous subsection, so that record selection becomes explicit and the fitted weights are
-exactly sparse. It also runs within \populace{}, a pipeline that
+exactly sparse. It also runs within \microcosm{}, a pipeline that
 expresses dataset construction as a sequence of modular stages over a shared data structure. The data
 sources, the imputation model, the geographic assignment, and the calibration method are
 interchangeable components rather than fixed steps, which lets the same pipeline support different

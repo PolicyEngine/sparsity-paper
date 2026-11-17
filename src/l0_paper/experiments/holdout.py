@@ -17,7 +17,7 @@ how defensible the out-of-sample claim is:
   immune to single-split luck / leaderboard overfitting. Used for the
   holdout-robustness panel at the anchor budget.
 
-Validation-only families (Populace diagnostics, e.g. ``cbo``; see
+Validation-only families (Microcosm diagnostics, e.g. ``cbo``; see
 :func:`validation_only_families`) are excluded from the fit by every strategy
 that takes a registry.
 """
@@ -156,7 +156,7 @@ def family_grouped_folds(
     ``n_folds`` pairs every (rotatable) family is held out exactly once.
 
     Validation-only families are added to *every* fold's holdout and never rotated
-    into the fit (they are Populace diagnostics, not contemporaneous targets).
+    into the fit (they are Microcosm diagnostics, not contemporaneous targets).
     """
     specs = registry.specs
     targets = _targets_with_registry_family(registry)
@@ -198,14 +198,14 @@ def _target_with_family_metadata(target: Target, family: str) -> Target:
     return replace(target, metadata=metadata)
 
 
-# Populace marks sources "validation-only" in ``source_coverage.US_SOURCE_COVERAGE``
+# Microcosm marks sources "validation-only" in ``source_coverage.US_SOURCE_COVERAGE``
 # (scored as diagnostics, not fit), but it keys that classification by *arch package
 # alias* (e.g. ``cbo-revenue-projections-income-by-source-2026-02``) while the
 # compiled registry labels targets by ``spec.family`` (a source domain, e.g.
-# ``cbo``). Populace exposes no programmatic bridge between those two name spaces,
+# ``cbo``). Microcosm exposes no programmatic bridge between those two name spaces,
 # so we translate here -- but only for coverage families that actually compile into
 # registry targets, and the *authority* for what is validation-only stays in
-# Populace (we gate on ``validation_only_family_ids()`` below).
+# Microcosm (we gate on ``validation_only_family_ids()`` below).
 #
 # Map ONLY families that are entirely validation-only. The other validation-only
 # coverage entries are deliberately omitted because they produce no registry
@@ -221,12 +221,12 @@ _VALIDATION_ONLY_COVERAGE_TO_FAMILY: dict[str, str] = {
 
 
 def validation_only_families(registry: TargetRegistry | None = None) -> set[str]:
-    """Return the registry families Populace classifies as validation-only.
+    """Return the registry families Microcosm classifies as validation-only.
 
     These should be **scored out-of-sample but never fit** (forecast/aging or
     survey-based diagnostics, not contemporaneous calibration targets). The set is
-    gated by Populace's live ``validation_only_family_ids()`` -- this never returns
-    a family Populace does not currently mark validation-only -- and, when
+    gated by Microcosm's live ``validation_only_family_ids()`` -- this never returns
+    a family Microcosm does not currently mark validation-only -- and, when
     ``registry`` is given, is intersected with the families actually present so
     phantom families are not passed downstream.
     """

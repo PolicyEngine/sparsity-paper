@@ -13,7 +13,7 @@ Reads the sweep's tidy long CSV, aggregates it with
 
 Figures
 -------
-* F0  objective frontier: Populace capped weighted loss vs retained records.
+* F0  objective frontier: Microcosm capped weighted loss vs retained records.
 * F1  raw-error frontier: mean & median ARE vs average retained records.
 * F2  usability: effective sample size and max weight vs budget.
 * F3  generalization gap: out-of-sample minus in-sample mean ARE when a holdout exists.
@@ -235,7 +235,7 @@ def write_reports(long_csv: Path, out_dir: Path, *, anchor_budget: int | None) -
         out_dir / "paper_tables", df, budget=anchor_budget
     )
 
-    # Markdown summary. Lead with the Populace objective loss (capped, weighted,
+    # Markdown summary. Lead with the Microcosm objective loss (capped, weighted,
     # penalty-free), with ARE tables as companion diagnostics.
     oos = frontier_oos[frontier_oos["split"] == headline_split]
     methods = [m for m in SWEEP_METHOD_ORDER if m in set(oos["method"])]
@@ -328,10 +328,10 @@ def write_reports(long_csv: Path, out_dir: Path, *, anchor_budget: int | None) -
         f"- Budgets: `{sorted(oos['budget_requested'].unique().tolist())}`",
         f"- Seeds per point: `{int(oos['n_seeds'].max()) if not oos.empty else 0}`",
         f"- Headline split: `{headline_split}`",
-        f"- Populace loss cap: `{target_loss_cap:g}`",
+        f"- Microcosm loss cap: `{target_loss_cap:g}`",
         f"- Rotation panel: `{'yes' if has_rotation else 'no'}`",
         "",
-        f"## {headline_label} Populace objective loss (%) by budget (headline; capped weighted MAPE, penalty-free)",
+        f"## {headline_label} Microcosm objective loss (%) by budget (headline; capped weighted MAPE, penalty-free)",
         "",
         *_objective_budget_table(objective_summary),
         "",
@@ -885,7 +885,7 @@ def write_figures(report: dict, out_dir: Path) -> list[Path]:
                         )
             _budget_axis(ax0, objective_summary["budget_requested"].unique())
             ax0.set(
-                title=f"{headline_label} Populace objective loss",
+                title=f"{headline_label} Microcosm objective loss",
                 xlabel="Requested budget",
                 ylabel="Capped weighted MAPE (%, lower is better)",
             )

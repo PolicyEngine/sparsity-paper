@@ -1,20 +1,20 @@
 """Build and freeze the pre-calibration dataset for the L0 experiments.
 
-This reproduces the Populace dataset PolicyEngine ships, stopping immediately
+This reproduces the Microcosm dataset PolicyEngine ships, stopping immediately
 before the calibration step. The frozen artifact -- the materialized
 :class:`~populace.frame.Frame` plus the :class:`~populace.calibrate.TargetRegistry`
 -- becomes the single, shared input every calibration experiment runs on, so that
 the calibration routine is the only thing that varies between conditions.
 
-The boundary mirrors ``populace/tools/build_us_fiscal_refresh_release.py``:
+The boundary mirrors ``microcosm/tools/build_us_fiscal_refresh_release.py``:
 
     facts -> compile_us_fiscal_target_registry -> _load_frame
           -> (_with_aca_marketplace_source_outputs) -> _materialize_target_frame
           ===  pre-calibration dataset  ===  then calibrate(...)
 
 The materialized frame carries formula-owned measure columns (``income_tax`` etc.)
-that Populace's H5 export gate intentionally rejects, so the frame is persisted by
-pickle (a regenerable cache keyed to the Populace version) rather than to ``.h5``.
+that Microcosm's H5 export gate intentionally rejects, so the frame is persisted by
+pickle (a regenerable cache keyed to the Microcosm version) rather than to ``.h5``.
 The registry is written as its portable, content-addressed JSON artifact.
 """
 
@@ -36,7 +36,7 @@ from populace.calibrate import TargetRegistry
 from populace.calibrate.registry import TargetSpec
 from populace.frame import Frame, Weights
 
-from ._populace_driver import _populace_repo_root, load_driver
+from ._microcosm_driver import _microcosm_repo_root, load_driver
 
 FRAME_PICKLE = "precalibration_frame.pkl"
 REGISTRY_JSON = "registry.json"
@@ -77,10 +77,10 @@ def _absolute_path(path: str | Path) -> Path:
     return Path.cwd() / expanded
 
 
-def _populace_commit() -> str | None:
+def _microcosm_commit() -> str | None:
     try:
         return subprocess.run(
-            ["git", "-C", str(_populace_repo_root()), "rev-parse", "HEAD"],
+            ["git", "-C", str(_microcosm_repo_root()), "rev-parse", "HEAD"],
             capture_output=True,
             text=True,
             check=True,
@@ -118,7 +118,7 @@ def _subsample_households(frame: Frame, n: int, seed: int) -> Frame:
 def _policyengine_formula_owned_columns(frame: Frame, period: int) -> set[str]:
     """Return PolicyEngine-computed columns present on ``frame``.
 
-    Published Populace H5 snapshots can contain columns that older
+    Published Microcosm H5 snapshots can contain columns that older
     PolicyEngine-US versions accepted as inputs, but the current adapter now
     owns through formulas/adds/subtracts. Before the L0 pre-calibration build
     turns the imported frame back into a ``Microsimulation`` dataset, normalize
@@ -176,7 +176,7 @@ def _reset_uniform(frame: Frame, weight_entity: str) -> Frame:
     Starting the experiments from an already-calibrated weight vector would seed
     every condition with a solution. A uniform start that conserves total mass is
     the neutral pre-calibration state. The weight *kind* is preserved because the
-    Populace ``Frame`` only allows forward kind transitions.
+    Microcosm ``Frame`` only allows forward kind transitions.
     """
     weights = frame.weights_for(weight_entity)
     total = float(weights.values.sum())
@@ -210,7 +210,7 @@ def _compile_registry(
         or congressional_district_vintage_crosswalk is not None
     ):
         raise ValueError(
-            "Congressional-district targets require the complete Populace fiscal "
+            "Congressional-district targets require the complete Microcosm fiscal "
             "target compiler; do not combine them with --allow-partial-facts."
         )
 
@@ -221,8 +221,8 @@ def _compile_registry(
     if include_congressional_district_targets:
         if "include_congressional_district_targets" not in compile_parameters:
             raise RuntimeError(
-                "The configured Populace checkout does not support congressional "
-                "district targets. Update Populace to a version whose "
+                "The configured Microcosm checkout does not support congressional "
+                "district targets. Update Microcosm to a version whose "
                 "compile_us_fiscal_target_registry accepts "
                 "include_congressional_district_targets."
             )
@@ -230,15 +230,15 @@ def _compile_registry(
     if congressional_district_vintage_crosswalk is not None:
         if "congressional_district_vintage_crosswalk" not in compile_parameters:
             raise RuntimeError(
-                "The configured Populace checkout does not support congressional "
-                "district vintage crosswalks. Update Populace to a version whose "
+                "The configured Microcosm checkout does not support congressional "
+                "district vintage crosswalks. Update Microcosm to a version whose "
                 "compile_us_fiscal_target_registry accepts "
                 "congressional_district_vintage_crosswalk."
             )
         loader = getattr(driver, "load_congressional_district_vintage_crosswalk", None)
         if loader is None:
             raise RuntimeError(
-                "The configured Populace checkout does not expose "
+                "The configured Microcosm checkout does not expose "
                 "load_congressional_district_vintage_crosswalk."
             )
         compile_kwargs["congressional_district_vintage_crosswalk"] = loader(
@@ -323,15 +323,15 @@ def build_precalibration_dataset(
             ``ledger_filter`` metadata the US fiscal materializer cannot compute
             (recorded in the manifest) instead of letting materialization abort.
             See :func:`_drop_unsupported_filter_targets`.
-        include_congressional_district_targets: Opt into Populace's expanded
-            congressional-district target surface when the configured Populace
+        include_congressional_district_targets: Opt into Microcosm's expanded
+            congressional-district target surface when the configured Microcosm
             checkout supports it.
         congressional_district_vintage_crosswalk: Optional CD vintage crosswalk
-            artifact used by Populace to translate old-vintage CD facts onto the
+            artifact used by Microcosm to translate old-vintage CD facts onto the
             current district vintage before target compilation.
-        target_materialization_cache_dir: Optional Populace materialization cache
+        target_materialization_cache_dir: Optional Microcosm materialization cache
             directory for expensive formula-owned target columns. The cache is
-            keyed by base frame, Populace commit, PolicyEngine-US version, seed,
+            keyed by base frame, Microcosm commit, PolicyEngine-US version, seed,
             target period, registry version, and CD crosswalk hash.
 
     Returns:
@@ -358,7 +358,7 @@ def build_precalibration_dataset(
     )
     target_specs = registry.specs
     print(
-        f"Compiled Populace target registry: {len(target_specs):,} target(s), "
+        f"Compiled Microcosm target registry: {len(target_specs):,} target(s), "
         f"version={registry.version}.",
         flush=True,
     )
@@ -417,13 +417,13 @@ def build_precalibration_dataset(
     if cache_path is not None:
         if "target_materialization_cache_dir" not in materialize_parameters:
             raise RuntimeError(
-                "The configured Populace checkout does not support "
+                "The configured Microcosm checkout does not support "
                 "target_materialization_cache_dir on _materialize_target_frame."
             )
         materialize_kwargs["target_materialization_cache_dir"] = cache_path
         materialize_kwargs["target_materialization_cache_context"] = {
             "base_dataset_sha256": base_h5_sha256,
-            "build_commit": _populace_commit(),
+            "build_commit": _microcosm_commit(),
             "policyengine_us_version": _package_version("policyengine-us"),
             "seed": aca_seed,
             "target_period": period,
@@ -463,7 +463,7 @@ def build_precalibration_dataset(
     dropped = list(compilation.get("dropped_target_names", []) or [])
     manifest: dict[str, Any] = {
         "schema_version": 1,
-        "populace_commit": _populace_commit(),
+        "populace_commit": _microcosm_commit(),
         "period": period,
         "weight_entity": weight_entity,
         "reset_weights": reset_weights,

@@ -15,10 +15,10 @@ jobs:
         with:
           path: l0-paper
 
-      - name: Check out Populace
+      - name: Check out Microcosm
         uses: actions/checkout@v4
         with:
-          repository: PolicyEngine/populace
+          repository: PolicyEngine/microcosm
           # The proximal L1 solver (method="prox", l1_lambda) is on main as of PR #184.
           ref: main
           path: populace

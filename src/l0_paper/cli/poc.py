@@ -92,7 +92,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--target-loss-weighting",
                         choices=target_loss.TARGET_LOSS_WEIGHTINGS,
                         default=target_loss.PRODUCTION_US_FISCAL,
-                        help="Target-row weights used inside Populace's calibration "
+                        help="Target-row weights used inside Microcosm's calibration "
                              "loss. Default matches the production US fiscal weighting.")
     parser.add_argument("--target-loss-cap", type=float, default=None,
                         help="Per-target cap in the calibration loss. Defaults by "
@@ -106,7 +106,7 @@ def _parse_args() -> argparse.Namespace:
         "--fit-validation-only",
         action="store_true",
         help=(
-            "Include Populace's validation-only families (e.g. cbo income/revenue "
+            "Include Microcosm's validation-only families (e.g. cbo income/revenue "
             "projections) in the calibration fit. Default excludes them from the "
             "fit and scores them out-of-sample only."
         ),
@@ -157,7 +157,7 @@ def main() -> None:
         frame, registry = artifact.frame, artifact.registry
         precal_manifest = artifact.manifest
 
-    # 2. Hold targets out of every method's fit. Populace's validation-only families
+    # 2. Hold targets out of every method's fit. Microcosm's validation-only families
     #    (e.g. cbo) are diagnostics, not fit targets, so they are always excluded from
     #    the fit (scored out-of-sample only) unless --fit-validation-only is set.
     all_targets = registry.to_target_set()
