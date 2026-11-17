@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-"""Run a fixed-penalty L0 pilot on a frozen Populace precalibration artifact.
+"""Run a fixed-penalty L0 pilot on a frozen Microcosm precalibration artifact.
 
 This is the quick research loop for the full target-surface question: choose one
-``lambda_L0``, let Populace's hard-concrete calibrator decide the retained record
+``lambda_L0``, let Microcosm's hard-concrete calibrator decide the retained record
 count, then compare post-L0 refit and sample-first reweighting at that achieved
 count. Prefer ``--l0-lambda-share`` for the full target surface: it sets the
-sparsity penalty as a share of the candidate pool, then converts to Populace's
+sparsity penalty as a share of the candidate pool, then converts to Microcosm's
 raw per-record ``l0_lambda``. The command deliberately skips the outer budget
 bisection used by ``l0 sweep``.
 """
@@ -91,7 +91,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     l0_group.add_argument(
         "--l0-lambda",
         type=float,
-        help="Raw Populace per-record L0 penalty.",
+        help="Raw Microcosm per-record L0 penalty.",
     )
     l0_group.add_argument(
         "--l0-lambda-share",
@@ -99,7 +99,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help=(
             "Candidate-pool-normalized L0 penalty. The objective is "
             "target_loss + share * expected_open_records / candidate_records, "
-            "so the raw Populace l0_lambda is share / candidate_records."
+            "so the raw Microcosm l0_lambda is share / candidate_records."
         ),
     )
     parser.add_argument("--seed", type=int, default=0)
@@ -175,7 +175,7 @@ def _resolve_l0_lambda(
     l0_lambda_share: float | None,
     candidate_records: int,
 ) -> tuple[float, float]:
-    """Return raw Populace lambda and candidate-pool-normalized share."""
+    """Return raw Microcosm lambda and candidate-pool-normalized share."""
     if candidate_records < 1:
         raise ValueError("candidate_records must be positive")
     if raw_l0_lambda is not None:

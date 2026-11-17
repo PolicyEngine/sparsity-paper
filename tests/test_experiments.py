@@ -1,7 +1,7 @@
 """Offline end-to-end tests for the experiment harness.
 
 These exercise calibration conditions, scoring, holdout splitting, artifact
-summaries, and table rendering on the toy Populace frame -- no PolicyEngine-US and
+summaries, and table rendering on the toy Microcosm frame -- no PolicyEngine-US and
 no network, so CI stays fast and self-contained. The real-data path is driven by
 ``l0 poc`` / ``l0 sweep``.
 """
@@ -33,7 +33,7 @@ from l0_paper.experiments.conditions import (
     sample_from_dense,
     weighted_sample,
 )
-from l0_paper.populace_smoke import make_toy_frame, make_toy_targets
+from l0_paper.microcosm_smoke import make_toy_frame, make_toy_targets
 from populace.calibrate import Target, TargetSet
 
 
@@ -677,8 +677,8 @@ def test_drop_unsupported_filter_targets():
             self.name = name
 
     class _StubDriver:
-        # Stands in for the Populace driver's classifier (the supported-key check
-        # itself lives in populace and is exercised there); here we only verify the
+        # Stands in for the Microcosm driver's classifier (the supported-key check
+        # itself lives in Microcosm and is exercised there); here we only verify the
         # harness drops exactly the flagged targets and reports them.
         @staticmethod
         def _unsupported_ledger_filter_metadata(specs):
@@ -750,14 +750,14 @@ def test_drop_columns_preserves_frame_metadata():
     )
 
 
-def test_validation_only_families_tracks_populace():
-    """Returns Populace-classified validation-only families (cbo), never hard ones."""
+def test_validation_only_families_tracks_microcosm():
+    """Returns Microcosm-classified validation-only families (cbo), never hard ones."""
     fams = holdout.validation_only_families()
-    # cbo income/revenue projections are validation-only per Populace's source coverage.
+    # cbo income/revenue projections are validation-only per Microcosm's source coverage.
     assert "cbo" in fams
     # Hard-target families must never be excluded from the fit.
     assert fams.isdisjoint({"irs_soi", "census_population", "jct", "cms_aca", "ssa"})
-    # The set is gated by Populace: every returned family is currently classified
+    # The set is gated by Microcosm: every returned family is currently classified
     # validation-only there (translated from the coverage family ids).
     try:
         from populace.build.us.source_coverage import validation_only_family_ids
@@ -768,7 +768,7 @@ def test_validation_only_families_tracks_populace():
     assert "cbo_income_revenue_projection" in classified
 
 
-def test_production_us_fiscal_target_loss_imports_populace_helper():
+def test_production_us_fiscal_target_loss_imports_microcosm_helper():
     targets = TargetSet(
         (
             Target(
@@ -805,9 +805,9 @@ def test_production_us_fiscal_target_loss_imports_populace_helper():
 
     assert weights is not None
     assert np.isclose(weights.mean(), 1.0)
-    # Reuses Populace's production rule: sqrt(value) within the amount basis.
+    # Reuses Microcosm's production rule: sqrt(value) within the amount basis.
     assert np.isclose(weights[1] / weights[0], 2.0)
-    # production_us_fiscal inherits Populace's production cap (1.0), not the generic 10.0
+    # production_us_fiscal inherits Microcosm's production cap (1.0), not the generic 10.0
     assert (
         target_loss.resolve_target_loss_cap(
             target_loss.PRODUCTION_US_FISCAL,
@@ -824,12 +824,12 @@ def test_production_us_fiscal_target_loss_imports_populace_helper():
     assert target_loss.target_loss_weight_summary(weights)["kind"] == "provided"
 
 
-def test_production_module_path_uses_shared_populace_discovery(monkeypatch, tmp_path):
+def test_production_module_path_uses_shared_microcosm_discovery(monkeypatch, tmp_path):
     driver = tmp_path / "tools" / "build_us_fiscal_refresh_release.py"
     driver.parent.mkdir(parents=True)
     driver.write_text("# helper placeholder\n")
 
-    monkeypatch.setattr(target_loss, "_populace_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(target_loss, "_microcosm_repo_root", lambda: tmp_path)
 
     assert target_loss._production_module_path() == driver
 

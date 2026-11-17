@@ -210,8 +210,8 @@ def _parse_args() -> argparse.Namespace:
         "--target-loss-weighting",
         choices=target_loss.TARGET_LOSS_WEIGHTINGS,
         default=target_loss.PRODUCTION_US_FISCAL,
-        help="Target-row weights used inside Populace's calibration "
-        "loss. Default 'production_us_fiscal' imports Populace's "
+        help="Target-row weights used inside Microcosm's calibration "
+        "loss. Default 'production_us_fiscal' imports Microcosm's "
         "production _fiscal_target_loss_weights helper; 'uniform' "
         "preserves the historical unweighted experiment loss.",
     )
@@ -246,7 +246,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--fit-validation-only",
         action="store_true",
-        help="Include Populace validation-only families (e.g. cbo) in the fit.",
+        help="Include Microcosm validation-only families (e.g. cbo) in the fit.",
     )
     parser.add_argument(
         "--full-target-surface",
@@ -776,7 +776,7 @@ def _l0_budget_progress_logger(
     l2_lambda: float,
     started_at: float,
 ) -> Callable[[dict[str, object]], None]:
-    """Print one start/result pair for each Populace L0 budget-search iteration."""
+    """Print one start/result pair for each Microcosm L0 budget-search iteration."""
     prefix = _progress_prefix(
         holdout_type=holdout_type,
         fold=fold,

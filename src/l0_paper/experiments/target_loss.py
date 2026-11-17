@@ -1,8 +1,8 @@
 """Target-loss weighting options for the experiment harness.
 
-The paper experiments default to Populace's current US fiscal production
+The paper experiments default to Microcosm's current US fiscal production
 weighting, while retaining the historical uniform target-row loss as an explicit
-contrast. Until Populace
+contrast. Until Microcosm
 exposes that helper from a public package module, this file imports the private
 release-builder implementation so the experiment uses the same code path as
 production rather than a local reimplementation.
@@ -18,17 +18,17 @@ from typing import Any
 
 import numpy as np
 
-from l0_paper._populace_driver import _DRIVER_RELPATH, _populace_repo_root
+from l0_paper._microcosm_driver import _DRIVER_RELPATH, _microcosm_repo_root
 from populace.calibrate.target import TargetSet
 
 UNIFORM = "uniform"
 PRODUCTION_US_FISCAL = "production_us_fiscal"
 TARGET_LOSS_WEIGHTINGS = (UNIFORM, PRODUCTION_US_FISCAL)
 
-#: Generic solver fallback cap (Populace's ``_DEFAULT_TARGET_LOSS_CAP``); the cap
+#: Generic solver fallback cap (Microcosm's ``_DEFAULT_TARGET_LOSS_CAP``); the cap
 #: for the uniform-weighting baseline.
 DEFAULT_TARGET_LOSS_CAP = 10.0
-#: Production US-fiscal cap, mirroring ``US_FISCAL_TARGET_LOSS_CAP`` in Populace's
+#: Production US-fiscal cap, mirroring ``US_FISCAL_TARGET_LOSS_CAP`` in Microcosm's
 #: ``tools/build_us_fiscal_refresh_release.py`` so the production weighting inherits
 #: the production cap rather than the generic 10.0.
 PRODUCTION_US_FISCAL_TARGET_LOSS_CAP = 1.0
@@ -59,9 +59,9 @@ def resolve_target_loss_cap(weighting: str, cap: float | None) -> float:
 
 
 def _spec_family(target: Any) -> str:
-    """Family of a target, matching Populace's registry derivation.
+    """Family of a target, matching Microcosm's registry derivation.
 
-    Populace's ``TargetRegistry`` derives a spec's ``family`` from the
+    Microcosm's ``TargetRegistry`` derives a spec's ``family`` from the
     ``"<family>/..."`` name prefix (``calibrate/registry.py``); mirror that so the
     production loss-weighting helper, which keys per-concept budgets on
     ``spec.family``, sees the same value. Fall back to the full name when a target
@@ -76,7 +76,7 @@ def _spec_family(target: Any) -> str:
 class _SpecView:
     """Read-only view of a :class:`Target` that also exposes ``family``.
 
-    Populace's production weighting reads each spec's ``value``, ``metadata``,
+    Microcosm's production weighting reads each spec's ``value``, ``metadata``,
     ``entity``, ``period``, ``filter``, ``name`` and ``family``. A ``TargetSet``
     yields ``Target``s, which carry every field but ``family`` (a registry-level
     attribute). This view delegates every attribute to the wrapped target and
@@ -101,7 +101,7 @@ def target_loss_weights(targets: TargetSet, *, weighting: str) -> np.ndarray | N
     if weighting != PRODUCTION_US_FISCAL:
         raise ValueError(f"Unknown target-loss weighting {weighting!r}.")
 
-    # Populace's private helper reads ``registry.specs`` and a small spec-like
+    # Microcosm's private helper reads ``registry.specs`` and a small spec-like
     # surface for each row. A TargetSet carries those fields in the same order
     # passed to calibrate; this shim preserves row alignment while avoiding a
     # lossy TargetSet -> TargetRegistry reconstruction.
@@ -128,7 +128,7 @@ def target_loss_weight_summary(weights: np.ndarray | None) -> dict[str, Any]:
 
 
 def production_source_path() -> str:
-    """Path of the private Populace module used for production weighting."""
+    """Path of the private Microcosm module used for production weighting."""
     return str(_production_module_path())
 
 
@@ -139,19 +139,19 @@ def _production_module():
         "_populace_us_fiscal_refresh_private", path
     )
     if spec is None or spec.loader is None:
-        raise ImportError(f"Cannot load Populace production target-loss helper: {path}")
+        raise ImportError(f"Cannot load Microcosm production target-loss helper: {path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
 def _production_module_path() -> Path:
-    path = _populace_repo_root() / _DRIVER_RELPATH
+    path = _microcosm_repo_root() / _DRIVER_RELPATH
     if not path.is_file():
         raise FileNotFoundError(
-            "Populace production target-loss helper not found at "
-            f"{path}. Set L0_PAPER_POPULACE_REPO or expose the helper from "
-            f"Populace before using {PRODUCTION_US_FISCAL!r}."
+            "Microcosm production target-loss helper not found at "
+            f"{path}. Set L0_PAPER_MICROCOSM_REPO or expose the helper from "
+            f"Microcosm before using {PRODUCTION_US_FISCAL!r}."
         )
     return path
 

@@ -1,14 +1,14 @@
-"""Load Populace's production fiscal-refresh build driver as an importable module.
+"""Load Microcosm's production fiscal-refresh build driver as an importable module.
 
-The Populace dataset that PolicyEngine ships is built by the script
-``populace/tools/build_us_fiscal_refresh_release.py``. That script is not packaged
+The Microcosm dataset that PolicyEngine ships is built by the script
+``microcosm/tools/build_us_fiscal_refresh_release.py``. That script is not packaged
 as an importable module, but its pre-calibration logic (loading the base frame,
 resolving Ledger facts into a target registry, and materializing the calibration
 target measures onto the frame) is exactly the "build the dataset except the
 calibration step" boundary this paper's experiments need.
 
 Rather than re-implement that PolicyEngine-US materialization, we import the
-driver from the sibling ``populace`` checkout and reuse its functions. The path is
+driver from the sibling Microcosm checkout and reuse its functions. The path is
 discovered from the installed ``populace.build`` package (so it follows the
 ``[tool.uv.sources]`` editable install in ``pyproject.toml``), with an environment
 override for non-standard layouts.
@@ -26,21 +26,24 @@ from functools import lru_cache
 from pathlib import Path
 from types import ModuleType
 
-#: Driver script path, relative to the Populace repository root.
+#: Driver script path, relative to the Microcosm repository root.
 _DRIVER_RELPATH = Path("tools") / "build_us_fiscal_refresh_release.py"
 
-#: Environment variable that overrides Populace repo-root discovery.
-_REPO_ENV = "L0_PAPER_POPULACE_REPO"
+#: Environment variable that overrides Microcosm repo-root discovery.
+_REPO_ENV = "L0_PAPER_MICROCOSM_REPO"
+_LEGACY_REPO_ENV = "L0_PAPER_POPULACE_REPO"  # compat: populace alias, remove after 0.2.0
 
 
-def _populace_repo_root() -> Path:
-    """Locate the Populace repository root that backs the installed packages."""
-    override = os.environ.get(_REPO_ENV)
+def _microcosm_repo_root() -> Path:
+    """Locate the Microcosm repository root that backs the installed packages."""
+    # compat: populace alias, remove after 0.2.0 (falls back to _LEGACY_REPO_ENV)
+    env_name = _REPO_ENV if os.environ.get(_REPO_ENV) else _LEGACY_REPO_ENV
+    override = os.environ.get(env_name)
     if override:
         root = Path(override).expanduser().resolve()
         if not (root / _DRIVER_RELPATH).is_file():
             raise FileNotFoundError(
-                f"{_REPO_ENV}={root} does not contain {_DRIVER_RELPATH}."
+                f"{env_name}={root} does not contain {_DRIVER_RELPATH}."
             )
         return root
 
@@ -52,20 +55,20 @@ def _populace_repo_root() -> Path:
         if (parent / _DRIVER_RELPATH).is_file():
             return parent
     raise FileNotFoundError(
-        "Could not locate the Populace repository root from "
-        f"{here}. Set {_REPO_ENV} to the populace checkout that holds "
+        "Could not locate the Microcosm repository root from "
+        f"{here}. Set {_REPO_ENV} to the Microcosm checkout that holds "
         f"{_DRIVER_RELPATH}."
     )
 
 
 @lru_cache(maxsize=1)
 def load_driver() -> ModuleType:
-    """Import and return the Populace fiscal-refresh build driver module.
+    """Import and return the Microcosm fiscal-refresh build driver module.
 
     The module is loaded once and cached. Importing it runs the driver's
     module-level imports (numpy, pandas, populace.*) but not ``main()``.
     """
-    driver_path = _populace_repo_root() / _DRIVER_RELPATH
+    driver_path = _microcosm_repo_root() / _DRIVER_RELPATH
     spec = importlib.util.spec_from_file_location(
         "l0_paper._populace_fiscal_refresh_driver", driver_path
     )

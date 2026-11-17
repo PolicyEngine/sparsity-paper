@@ -1,4 +1,4 @@
-"""Utilities for the L0 paper's Populace-backed experiments."""
+"""Utilities for the L0 paper's Microcosm-backed experiments."""
 
 __all__ = ["__version__"]
 

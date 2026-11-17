@@ -1,6 +1,6 @@
 """Scoring for a calibrated/sampled dataset against a target set.
 
-Populace's exported ``score_targets`` helper evaluates a frozen weight vector
+Microcosm's exported ``score_targets`` helper evaluates a frozen weight vector
 against any target set through the same constraint-matrix path used by
 calibration. This module layers the paper-specific summaries on top: overall
 ARE, by-family/geography cuts, denominator-degenerate labeling, and weight
@@ -24,7 +24,7 @@ _DISTRICT_LEVELS = {"congressional_district", "district", "cd"}
 def geography_level(target: Target) -> str:
     """Classify a target as ``national``, ``state``, or ``district``.
 
-    Reads Populace's ``ledger_geography_level`` metadata (values like ``country``
+    Reads Microcosm's ``ledger_geography_level`` metadata (values like ``country``
     / ``state``), with fallbacks for custom/toy targets.
     """
     metadata = target.metadata or {}
@@ -48,7 +48,7 @@ def geography_level(target: Target) -> str:
 def target_family(target: Target) -> str:
     """Group a target by source family (e.g. ``irs_soi``, ``jct``, ``cms_aca``).
 
-    Uses the Ledger ``source_record_id`` prefix, which matches Populace's
+    Uses the Ledger ``source_record_id`` prefix, which matches Microcosm's
     ``TargetSpec.family``; falls back to ``target_role`` then ``"unknown"``.
     """
     metadata = target.metadata or {}
@@ -86,7 +86,7 @@ def target_diagnostics(
 
     When ``loss_weights`` (the per-target ``omega_j``, aligned to ``targets``) is
     given, each row carries it as ``loss_weight``. ``scale`` is emitted from
-    Populace's canonical :func:`default_target_loss_scales` helper, so the stored
+    Microcosm's canonical :func:`default_target_loss_scales` helper, so the stored
     diagnostics reproduce the production objective denominator. Storing the raw
     ``target_value``/``achieved_value`` together with ``scale`` and
     ``loss_weight`` lets the capped, weighted MAPE be recomputed downstream at

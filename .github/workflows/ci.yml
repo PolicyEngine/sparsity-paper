@@ -15,7 +15,7 @@ jobs:
         with:
           path: l0-paper
 
-      - name: Check out Populace
+      - name: Check out Microcosm
         uses: actions/checkout@v4
         with:
           repository: PolicyEngine/microcosm

@@ -1,14 +1,14 @@
 # Experiments
 
-Populace-backed calibration experiments for the L0 paper.
+Microcosm-backed calibration experiments for the L0 paper.
 
-The design separates **building the dataset** (everything PolicyEngine's Populace
+The design separates **building the dataset** (everything PolicyEngine's Microcosm
 pipeline does *except* calibration) from **running calibration routines** on it,
 so the calibration method is the only thing that varies between conditions.
 
 ## The pre-calibration boundary
 
-`populace/tools/build_us_fiscal_refresh_release.py` builds the production dataset
+`microcosm/tools/build_us_fiscal_refresh_release.py` builds the production dataset
 as: resolve Ledger facts into a target registry → load the base frame →
 materialize the target measures → **calibrate**. We freeze the dataset at the step
 *before* `calibrate`: the materialized `(Frame, TargetRegistry)` pair, written by
@@ -38,7 +38,7 @@ frozen artifact.
    descent (gates off). The paper's method 2.
 
 All four return a full-length weight vector (zero for unretained records), scored
-against the same Populace target surface by [`metrics`](../experiments/metrics.py).
+against the same Microcosm target surface by [`metrics`](../experiments/metrics.py).
 The current manuscript leads with `--full-target-surface`, fitting and scoring
 every materialized target; [`holdout`](../experiments/holdout.py) supports separate
 family-level robustness diagnostics.
@@ -121,7 +121,7 @@ legacy direct-LaTeX path through `paper/main.tex`. Add
 `data/targets/consumer_facts.jsonl`, or pass `--reuse-precalibration <dir>`
 when the frozen artifact already exists.
 
-For the full congressional-district target surface, use the current Populace
+For the full congressional-district target surface, use the current Microcosm
 facts and crosswalk explicitly and cache expensive target materialization:
 
 ```bash
@@ -170,7 +170,7 @@ uv run --extra data l0 poc \
     --mass free --holdout-frac 0.0 --out runs/smoke
 ```
 
-Outputs per run: `run_manifest.json` (Populace commit, registry version, base-H5
+Outputs per run: `run_manifest.json` (Microcosm commit, registry version, base-H5
 and facts SHA-256, solver options, seeds, retained count, in/out-of-sample fit
 metrics, runtime, output paths), `<method>.npz` (weights + loss trajectory +
 diagnostics), and `tables/` (single-budget draft LaTeX, for inspection only).
@@ -208,7 +208,7 @@ sample-first baselines to that count. Prefer `--l0-lambda-share` over raw
 objective = target_loss + l0_lambda_share * expected_open_records / candidate_records
 ```
 
-The command converts that to Populace's raw per-record `l0_lambda` internally and
+The command converts that to Microcosm's raw per-record `l0_lambda` internally and
 records both values in `fixed_lambda_manifest.json`.
 
 ```bash
@@ -222,19 +222,19 @@ uv run --extra data l0 fixed-lambda \
 
 Holdout note: the production-surface frontier should usually use
 `--full-target-surface`, fitting every compiled target and reporting the
-penalty-free Populace calibration loss. Holdout is a separate robustness
-experiment. Populace itself uses **rotated k-fold** holdout
+penalty-free Microcosm calibration loss. Holdout is a separate robustness
+experiment. Microcosm itself uses **rotated k-fold** holdout
 (`populace/build/holdout.py`, every target held out once) plus **family-level
 `validation_only`** targets (excluded from the fit, scored separately) and
 out-of-sample reform validation. The quick POC can still use a single fixed split;
 the amplified sweep adds a family-grouped rotation panel for the robustness check.
 
-**Validation-only families** (Populace's `source_coverage` marks e.g. `cbo`
+**Validation-only families** (Microcosm's `source_coverage` marks e.g. `cbo`
 income/revenue projections as diagnostics, not contemporaneous calibration
 targets) are **excluded from every method's fit by default** and scored
 out-of-sample only — `holdout.validation_only_families()` derives the set from
-Populace's live classification (`validation_only_family_ids()`), so it tracks
-Populace rather than a hardcoded list. Pass `--fit-validation-only` to include
+Microcosm's live classification (`validation_only_family_ids()`), so it tracks
+Microcosm rather than a hardcoded list. Pass `--fit-validation-only` to include
 them in the fit. The set is recorded per run in
 `run_manifest.json` → `target_split.validation_only_families`.
 
@@ -273,7 +273,7 @@ uv run --extra data l0 sweep \
 	    --methods informed_l0 informed_l0_refit informed_l1 random_reweight dense_sample
 ```
 
-Production US-fiscal weighting defaults to the Populace production target-loss
+Production US-fiscal weighting defaults to the Microcosm production target-loss
 cap (`c=1`). Pass `--target-loss-cap 10` only when reproducing the older looser
 cap sensitivity runs.
 
@@ -312,7 +312,7 @@ Design points:
   deals **whole families** into `k` balanced folds so every family is held out
   exactly once, with no within-family leakage. Validation-only families (`cbo`)
   are excluded from every fit and scored out-of-sample only.
-- **Fail-fast families**: `--holdout-families` must use Populace registry family
+- **Fail-fast families**: `--holdout-families` must use Microcosm registry family
   names (`spec.family`, e.g. `state_income_tax`, `census_population`, `ssa`). An
   unknown name stops the run instead of silently leaving those targets in-sample.
 
@@ -320,7 +320,7 @@ Output: one tidy **long CSV** (`metrics_long.csv`) — one row per
 `(method, seed, budget, holdout_type, fold, split, scope, metric)` — plus a
 `sweep_manifest.json`. The long table is the single source of truth.
 
-> Family naming: the holdout split keys on Populace's `spec.family`
+> Family naming: the holdout split keys on Microcosm's `spec.family`
 > (`state_income_tax`, `census_population`, `ssa`), while the per-family scoring
 > breakdown labels families by Ledger metadata (`census_stc`, `census_pep`,
 > `ssa_supplement`). Same targets, two naming layers.
@@ -344,7 +344,7 @@ uv run --extra viz l0 figures \
     --sweep runs/sweep-moderate --paper-figures
 ```
 
-- **F0** objective frontier — Populace capped weighted loss vs retained records.
+- **F0** objective frontier — Microcosm capped weighted loss vs retained records.
 - **F1** frontier — mean & median ARE vs retained records (full-surface in-sample
   for `--full-target-surface`; out-of-sample for holdout runs).
 - **F2** usability — effective sample size and max weight vs budget.
@@ -365,10 +365,10 @@ they remain available in the by-family diagnostics.
 
 ## Full candidate universe (generate-big build)
 
-[`build_candidate.py`](build_candidate.py) wires Populace's 15-stage
+[`build_candidate.py`](build_candidate.py) wires Microcosm's 15-stage
 imputation (`populace.build.us_runtime.us_plan` -> `StagePlan.run`) for the true pre-prune
 candidate universe. It is **not run by default** (needs donor source data and
-~48 GB RAM) and has one extension point — the per-stage implementations Populace
+~48 GB RAM) and has one extension point — the per-stage implementations Microcosm
 does not yet export publicly.
 
 ## Tests

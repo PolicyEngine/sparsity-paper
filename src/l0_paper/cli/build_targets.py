@@ -11,9 +11,9 @@ arch-data is a source-of-truth fact store: by design it records every fact at it
 *true* native vintage (IRS SOI tax year 2023, JCT FY2024 estimates, CMS ACA 2022
 enrollment, ...) and never relabels them. Resolving those multi-vintage facts to a
 single calibration *target period* is a separate, downstream modeling step that
-**Populace** owns -- arch-data's own contract says so:
+**Microcosm** owns -- arch-data's own contract says so:
 
-    "Arch stores source-backed facts and target inputs. Populace owns the active
+    "Arch stores source-backed facts and target inputs. Microcosm owns the active
      calibration profile, source reconciliation, aging, and model variable mapping."
      -- arch-data/docs/pe-calibration-targets.md
 
@@ -24,7 +24,7 @@ the identity key and keeps the latest source vintage <= the target period
 single-period -- every target comes out at 2024 regardless of its source's vintage.
 
 So a multi-vintage ``consumer_facts.jsonl`` is correct and intended: it is the
-*input feed*, and Populace unifies the periods. This script does no aging or
+*input feed*, and Microcosm unifies the periods. This script does no aging or
 relabeling itself; its only job is to make that feed **complete**.
 
 Why a single ``arch build-bundle`` can't produce the complete feed
@@ -44,7 +44,7 @@ Passing all sources ``explicit=True`` bypasses the skip but then the off-year on
 (The one-command alternative would be an arch-data change -- have
 ``_resolve_bundle_sources`` build each source at its latest-available vintage <=
 the target instead of skipping. That is pure feed-assembly convenience: it would
-not change any target's period, since Populace already unifies them, and would make
+not change any target's period, since Microcosm already unifies them, and would make
 this script unnecessary.)
 
 What this script does
@@ -92,7 +92,7 @@ ARCH_REPO_ENV = "L0_PAPER_ARCH_REPO"
 #: artifact is declared only for the year shown here (not 2023), so the exact-year
 #: lookup skips them (see module docstring). Each is built individually at its own
 #: year and merged. The *year here is a source vintage*, not a target period --
-#: Populace ages all of these to the single 2024 target period downstream. Kept as
+#: Microcosm ages all of these to the single 2024 target period downstream. Kept as
 #: an explicit literal so the set of "extra" sources is reviewable in one place; if
 #: arch-data ever resolves per-source vintages itself, this map (and the whole
 #: off-year step) becomes unnecessary.
@@ -172,7 +172,7 @@ def merge(base_facts: Path, suite_facts: dict[str, Path], out: Path) -> dict:
     the base bundle (that's why we rebuilt them), so they introduce no
     ``aggregate_fact_key`` collisions -- the guard below asserts that invariant
     rather than silently de-duplicating. Facts keep their native source periods;
-    period unification happens later in Populace, not here.
+    period unification happens later in Microcosm, not here.
     """
     base_rows = _read_jsonl(base_facts)
     merged = list(base_rows)
