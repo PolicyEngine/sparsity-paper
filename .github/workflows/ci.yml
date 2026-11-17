@@ -19,8 +19,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: PolicyEngine/microcosm
-          # The proximal L1 solver (method="prox", l1_lambda) is on main as of PR #184.
-          ref: main
+          # Pinned to the commit that main's last passing run checked out (2026-07-01).
+          # Microcosm renamed its packages to microcosm-* in PR #638 (2026-08-08), while
+          # pyproject.toml's editable sources still point at packages/populace-*, so
+          # main no longer installs. Repoint both together to move off this pin. This
+          # commit includes the proximal L1 solver (method="prox", l1_lambda, PR #184).
+          ref: 673da1ca72a2a2d4779ed6fbdd04aba56d259f69
           path: populace
 
       - name: Set up uv
